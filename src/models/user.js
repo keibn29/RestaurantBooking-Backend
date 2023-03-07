@@ -14,6 +14,10 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "keyMap",
         as: "roleData",
       });
+      User.hasMany(models.Restaurant, {
+        foreignKey: "managerId",
+        as: "restaurantData",
+      });
     }
   }
   User.init(

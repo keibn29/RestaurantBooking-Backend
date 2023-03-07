@@ -2,6 +2,8 @@ import db from "../models/index";
 import bcrypt from "bcryptjs";
 const salt = bcrypt.genSaltSync(10);
 const { Op } = require("sequelize");
+import fs from "fs";
+import appRoot from "app-root-path";
 
 const login = (data) => {
   return new Promise(async (resolve, reject) => {
@@ -57,34 +59,19 @@ const createNewUser = (data, file, fileError) => {
         !data.roleId ||
         !data.address
       ) {
+        if (file) {
+          fs.unlinkSync(file.path);
+        }
         resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
       }
-
-      // let check = await db.User.findOne({
-      //   where: {
-      //     email: data.email,
-      //   },
-      // });
-      // if (check) {
-      //   resolve({
-      //     errCode: 2,
-      //     errMessage: "Email này đã được sử dụng, vui lòng nhập email khác",
-      //   });
-      // } else {
-      //   let passwordHash = await bcrypt.hashSync(data.password, salt);
-      // }
-
       if (fileError) {
         resolve({
           errCode: 2,
           errMessage: "Ảnh không hợp lệ",
         });
-      }
-      if (file) {
-        console.log(file.filename);
       }
 
       let passwordHash = await bcrypt.hashSync(data.password, salt);
@@ -100,10 +87,13 @@ const createNewUser = (data, file, fileError) => {
           phone: data.phone,
           address: data.address,
           roleId: data.roleId,
-          avatar: file ? `/images/${file.filename}` : null,
+          avatar: file ? `/images/users/${file.filename}` : null,
         },
       });
       if (!created) {
+        if (file) {
+          fs.unlinkSync(file.path);
+        }
         resolve({
           errCode: 2,
           errMessage: "Email này đã được sử dụng, vui lòng nhập email khác",
@@ -115,6 +105,9 @@ const createNewUser = (data, file, fileError) => {
         });
       }
     } catch (e) {
+      if (file) {
+        fs.unlinkSync(file.path);
+      }
       reject(e);
     }
   });
@@ -166,23 +159,130 @@ const searchUser = (data) => {
   });
 };
 
-const getAllCode = (code) => {
+const editUserById = (userId, data, file, fileError) => {
   return new Promise(async (resolve, reject) => {
     try {
-      if (!code) {
+      if (
+        !userId ||
+        !data.firstName ||
+        !data.lastName ||
+        !data.phone ||
+        !data.address ||
+        !data.roleId
+      ) {
+        if (file) {
+          fs.unlinkSync(file.path);
+        }
         resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
       }
-      let listCode = await db.Allcode.findAll({
+      if (fileError) {
+        resolve({
+          errCode: 2,
+          errMessage: "Ảnh không hợp lệ",
+        });
+      }
+
+      let user = await db.User.findOne({
         where: {
-          type: code,
+          id: userId,
+        },
+      });
+      if (user) {
+        user.firstName = data.firstName;
+        user.lastName = data.lastName;
+        user.phone = data.phone;
+        user.address = data.address;
+        user.roleId = data.roleId;
+        if (file) {
+          let avatarPath = appRoot + "/src/public" + user.avatar;
+          if (fs.existsSync(avatarPath)) {
+            fs.unlinkSync(avatarPath);
+          }
+          user.avatar = `/images/users/${file.filename}`;
+        }
+        await user.save();
+        resolve({
+          errCode: 0,
+          errMessage: "OK",
+        });
+      } else {
+        if (file) {
+          fs.unlinkSync(file.path);
+        }
+        resolve({
+          errCode: 3,
+          errMessage: "Không tìm thấy người dùng",
+        });
+      }
+    } catch (e) {
+      if (file) {
+        fs.unlinkSync(file.path);
+      }
+      reject(e);
+    }
+  });
+};
+
+const deleteUserById = (userId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!userId) {
+        resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      let user = await db.User.findOne({
+        where: {
+          id: userId,
+        },
+      });
+      if (user) {
+        if (user.avatar) {
+          let avatarPath = appRoot + "/src/public" + user.avatar;
+          if (fs.existsSync(avatarPath)) {
+            fs.unlinkSync(avatarPath);
+          }
+        }
+        await user.destroy();
+        resolve({
+          errCode: 0,
+          errMessage: "OK",
+        });
+      } else {
+        resolve({
+          errCode: 2,
+          errMessage: "Không tìm thấy người dùng",
+        });
+      }
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+const getAllUserByRole = (roleId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!roleId) {
+        resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      let listUser = await db.User.findAll({
+        where: {
+          roleId: roleId,
         },
       });
       resolve({
         errCode: 0,
-        listCode: listCode,
+        listUser,
       });
     } catch (e) {
       reject(e);
@@ -194,5 +294,7 @@ module.exports = {
   createNewUser,
   searchUser,
   login,
-  getAllCode,
+  editUserById,
+  deleteUserById,
+  getAllUserByRole,
 };

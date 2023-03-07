@@ -2,9 +2,9 @@ import userService from "../services/userService";
 
 const handleLogin = async (req, res) => {
   try {
-    let userData = await userService.login(req.body);
+    let response = await userService.login(req.body);
 
-    return res.status(200).json(userData);
+    return res.status(200).json(response);
   } catch (e) {
     return res.status(500).json({
       errCode: -1,
@@ -15,15 +15,14 @@ const handleLogin = async (req, res) => {
 
 const handleCreateNewUser = async (req, res) => {
   try {
-    let message = await userService.createNewUser(
+    let response = await userService.createNewUser(
       req.body,
       req.file,
       req.fileValidationError
     );
 
-    return res.status(200).json(message);
+    return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi từ server!",
@@ -33,9 +32,9 @@ const handleCreateNewUser = async (req, res) => {
 
 const handleSearchUser = async (req, res) => {
   try {
-    let listUser = await userService.searchUser(req.body);
+    let response = await userService.searchUser(req.body);
 
-    return res.status(200).json(listUser);
+    return res.status(200).json(response);
   } catch (e) {
     return res.status(500).json({
       errCode: -1,
@@ -44,13 +43,43 @@ const handleSearchUser = async (req, res) => {
   }
 };
 
-const handleGetAllCode = async (req, res) => {
+const handleEditUserById = async (req, res) => {
   try {
-    let listCode = await userService.getAllCode(req.params.code);
+    let response = await userService.editUserById(
+      req.params.userId,
+      req.body,
+      req.file,
+      req.fileValidationError
+    );
 
-    return res.status(200).json(listCode);
+    return res.status(200).json(response);
   } catch (e) {
-    console.log(e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi từ server!",
+    });
+  }
+};
+
+const handleDeleteUserById = async (req, res) => {
+  try {
+    let response = await userService.deleteUserById(req.params.userId);
+
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi từ server!",
+    });
+  }
+};
+
+const handleGetAllUserByRole = async (req, res) => {
+  try {
+    let response = await userService.getAllUserByRole(req.params.role);
+
+    return res.status(200).json(response);
+  } catch (e) {
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi từ server!",
@@ -62,5 +91,7 @@ module.exports = {
   handleCreateNewUser,
   handleSearchUser,
   handleLogin,
-  handleGetAllCode,
+  handleEditUserById,
+  handleDeleteUserById,
+  handleGetAllUserByRole,
 };
