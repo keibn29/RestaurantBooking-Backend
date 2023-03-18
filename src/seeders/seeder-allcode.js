@@ -29,7 +29,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T1",
+        keyMap: "T01",
         valueVi: "11:00",
         valueEn: "11:00 AM",
         createdAt: new Date(),
@@ -37,7 +37,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T2",
+        keyMap: "T02",
         valueVi: "12:00",
         valueEn: "12:00 PM",
         createdAt: new Date(),
@@ -45,7 +45,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T3",
+        keyMap: "T03",
         valueVi: "13:00",
         valueEn: "1:00 PM",
         createdAt: new Date(),
@@ -53,7 +53,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T4",
+        keyMap: "T04",
         valueVi: "14:00",
         valueEn: "2:00 PM",
         createdAt: new Date(),
@@ -61,7 +61,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T5",
+        keyMap: "T05",
         valueVi: "15:00",
         valueEn: "3:00 PM",
         createdAt: new Date(),
@@ -69,7 +69,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T6",
+        keyMap: "T06",
         valueVi: "16:00",
         valueEn: "4:00 PM",
         createdAt: new Date(),
@@ -77,7 +77,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T7",
+        keyMap: "T07",
         valueVi: "17:00",
         valueEn: "5:00 PM",
         createdAt: new Date(),
@@ -85,7 +85,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T8",
+        keyMap: "T08",
         valueVi: "18:00",
         valueEn: "6:00 PM",
         createdAt: new Date(),
@@ -93,7 +93,7 @@ module.exports = {
       },
       {
         type: "TIME",
-        keyMap: "T9",
+        keyMap: "T09",
         valueVi: "19:00",
         valueEn: "7:00 PM",
         createdAt: new Date(),
@@ -232,14 +232,6 @@ module.exports = {
         keyMap: "P9",
         valueVi: "Hồ Chí Minh",
         valueEn: "Ho Chi Minh",
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        type: "PROVINCE",
-        keyMap: "P10",
-        valueVi: "Cần Thơ",
-        valueEn: "Can Tho",
         createdAt: new Date(),
         updatedAt: new Date(),
       },

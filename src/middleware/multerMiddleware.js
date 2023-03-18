@@ -30,6 +30,20 @@ const storageRestaurant = multer.diskStorage({
   },
 });
 
+const storageFood = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, appRoot + "/src/public/images/foods/");
+  },
+
+  // By default, multer removes file extensions so let's add them back
+  filename: function (req, file, cb) {
+    cb(
+      null,
+      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+    );
+  },
+});
+
 const imageFilter = function (req, file, cb) {
   // Accept images only
   if (
@@ -48,5 +62,10 @@ export const uploadUser = multer({
 
 export const uploadRestaurant = multer({
   storage: storageRestaurant,
+  fileFilter: imageFilter,
+});
+
+export const uploadFood = multer({
+  storage: storageFood,
   fileFilter: imageFilter,
 });

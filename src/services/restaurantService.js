@@ -2,6 +2,8 @@ import db from "../models/index";
 import fs from "fs";
 import appRoot from "app-root-path";
 import { LANGUAGES } from "../constant";
+import _ from "lodash";
+import { isExistArrayAndNotEmpty } from "../condition";
 
 const createNewRestaurant = (data, file, fileError) => {
   return new Promise(async (resolve, reject) => {
@@ -131,36 +133,36 @@ const editRestaurantById = (restaurantId, data, file, fileError) => {
           id: restaurantId,
         },
       });
-      if (restaurant) {
-        restaurant.nameVi = data.nameVi;
-        restaurant.nameEn = data.nameEn;
-        restaurant.addressVi = data.addressVi;
-        restaurant.addressEn = data.addressEn;
-        restaurant.provinceId = data.provinceId;
-        restaurant.table = data.table;
-        restaurant.descriptionVi = data.descriptionVi;
-        restaurant.descriptionEn = data.descriptionEn;
-        if (file) {
-          let avatarPath = appRoot + "/src/public" + restaurant.avatar;
-          if (fs.existsSync(avatarPath)) {
-            fs.unlinkSync(avatarPath);
-          }
-          restaurant.avatar = `/images/restaurants/${file.filename}`;
-        }
-        await restaurant.save();
-        resolve({
-          errCode: 0,
-          errMessage: "OK",
-        });
-      } else {
+
+      if (!restaurant) {
         if (file) {
           fs.unlinkSync(file.path);
         }
         resolve({
           errCode: 3,
-          errMessage: "Không tìm thấy người dùng",
+          errMessage: "Không tìm thấy nhà hàng",
         });
       }
+      restaurant.nameVi = data.nameVi;
+      restaurant.nameEn = data.nameEn;
+      restaurant.addressVi = data.addressVi;
+      restaurant.addressEn = data.addressEn;
+      restaurant.provinceId = data.provinceId;
+      restaurant.table = data.table;
+      restaurant.descriptionVi = data.descriptionVi;
+      restaurant.descriptionEn = data.descriptionEn;
+      if (file) {
+        let avatarPath = appRoot + "/src/public" + restaurant.avatar;
+        if (fs.existsSync(avatarPath)) {
+          fs.unlinkSync(avatarPath);
+        }
+        restaurant.avatar = `/images/restaurants/${file.filename}`;
+      }
+      await restaurant.save();
+      resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
     } catch (e) {
       if (file) {
         fs.unlinkSync(file.path);
@@ -170,8 +172,149 @@ const editRestaurantById = (restaurantId, data, file, fileError) => {
   });
 };
 
+const deleteRestaurantById = (restaurantId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!restaurantId) {
+        resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      let restaurant = await db.Restaurant.findOne({
+        where: {
+          id: restaurantId,
+        },
+      });
+      if (!restaurant) {
+        resolve({
+          errCode: 2,
+          errMessage: "Không tìm thấy nhà hàng",
+        });
+      }
+
+      if (restaurant.avatar) {
+        let avatarPath = appRoot + "/src/public" + restaurant.avatar;
+        if (fs.existsSync(avatarPath)) {
+          fs.unlinkSync(avatarPath);
+        }
+      }
+      await restaurant.destroy();
+      resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+let bulkCreateSchedule = (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (
+        !data.restaurantId ||
+        !isExistArrayAndNotEmpty(data.listDateSelected) ||
+        !isExistArrayAndNotEmpty(data.listTimeSelected)
+      ) {
+        resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      let listDate = data.listDateSelected;
+      let listTime = data.listTimeSelected;
+      let listNewSchedule = [];
+      listDate.map((dateItem) => {
+        listTime.map((timeItem) => {
+          let obj = {
+            restaurantId: data.restaurantId,
+            date: dateItem,
+            timeType: timeItem.keyMap,
+          };
+          listNewSchedule.push(obj);
+          return listNewSchedule;
+        });
+      });
+
+      let listExistSchedule = await db.Schedule.findAll({
+        where: {
+          restaurantId: data.restaurantId,
+        },
+        attributes: ["restaurantId", "date", "timeType"],
+        raw: true,
+      });
+
+      let listScheduleBulkCreate = _.differenceWith(
+        listNewSchedule,
+        listExistSchedule,
+        (newItem, existItem) => {
+          return (
+            +newItem.date === +existItem.date &&
+            newItem.timeType === existItem.timeType
+          );
+        }
+      );
+
+      if (!isExistArrayAndNotEmpty(listScheduleBulkCreate)) {
+        resolve({
+          errCode: 2,
+          errMessage: "Tất cả lịch muốn thêm đã tồn tại",
+        });
+      }
+
+      await db.Schedule.bulkCreate(listScheduleBulkCreate);
+      resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
+let searchScheduleByDate = (restaurantId, date) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!restaurantId || !date) {
+        resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+      let listSchedule = await db.Schedule.findAll({
+        where: {
+          restaurantId: restaurantId,
+          date: `${date}`,
+        },
+        order: [["timeType", "ASC"]],
+        include: [
+          {
+            model: db.Allcode,
+            as: "timeTypeData",
+            attributes: ["valueVi", "valueEn"],
+          },
+        ],
+      });
+      resolve({
+        errCode: 0,
+        listSchedule,
+      });
+    } catch (e) {
+      reject(e);
+    }
+  });
+};
+
 module.exports = {
   createNewRestaurant,
   searchRestaurant,
   editRestaurantById,
+  deleteRestaurantById,
+  bulkCreateSchedule,
+  searchScheduleByDate,
 };

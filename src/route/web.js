@@ -1,8 +1,13 @@
 import express from "express";
-import { uploadUser, uploadRestaurant } from "../middleware/multerMiddleware";
+import {
+  uploadUser,
+  uploadRestaurant,
+  uploadFood,
+} from "../middleware/multerMiddleware";
 import userController from "../controllers/userController";
 import allCodeController from "../controllers/allCodeController";
 import restaurantController from "../controllers/restaurantController";
+import foodController from "../controllers/foodController";
 
 const router = express.Router();
 
@@ -43,6 +48,28 @@ const initWebRoutes = (app) => {
     uploadRestaurant.single("avatar"),
     restaurantController.handleEditRestaurantById
   );
+  router.delete(
+    "/api/restaurants/:restaurantId",
+    restaurantController.handleDeleteRestaurantById
+  );
+
+  //schedule
+  router.post("/api/schedules", restaurantController.handleBulkCreateSchedule);
+  router.get("/api/schedules", restaurantController.handleSearchScheduleByDate);
+
+  //food
+  router.post(
+    "/api/foods",
+    uploadFood.single("avatar"),
+    foodController.handleCreateNewFood
+  );
+  router.post("/api/foods/search", foodController.handleSearchFood);
+  router.put(
+    "/api/foods/:foodId",
+    uploadFood.single("avatar"),
+    foodController.handleEditFoodById
+  );
+  router.delete("/api/foods/:foodId", foodController.handleDeleteFoodById);
 
   return app.use("/", router);
 };

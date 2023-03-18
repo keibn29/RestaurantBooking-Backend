@@ -9,6 +9,15 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Food.belongsTo(models.Allcode, {
+        foreignKey: "countryId",
+        targetKey: "keyMap",
+        as: "countryData",
+      });
+      Food.belongsTo(models.Restaurant, {
+        foreignKey: "restaurantId",
+        as: "restaurantData",
+      });
     }
   }
 
@@ -18,7 +27,8 @@ module.exports = (sequelize, DataTypes) => {
       nameEn: DataTypes.STRING,
       descriptionVi: DataTypes.TEXT,
       descriptionEn: DataTypes.TEXT,
-      price: DataTypes.STRING,
+      priceVi: DataTypes.STRING,
+      priceEn: DataTypes.STRING,
       restaurantId: DataTypes.INTEGER,
       avatar: DataTypes.STRING,
       countryId: DataTypes.STRING,
@@ -26,6 +36,7 @@ module.exports = (sequelize, DataTypes) => {
     {
       sequelize,
       modelName: "Food",
+      tableName: "Foods",
     }
   );
   return Food;

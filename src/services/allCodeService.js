@@ -13,6 +13,7 @@ const getAllCode = (code) => {
         where: {
           type: code,
         },
+        order: [["id", "ASC"]],
       });
       resolve({
         errCode: 0,

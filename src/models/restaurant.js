@@ -18,6 +18,14 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "managerId",
         as: "managerData",
       });
+      Restaurant.hasMany(models.Food, {
+        foreignKey: "restaurantId",
+        as: "foodData",
+      });
+      Restaurant.hasMany(models.Schedule, {
+        foreignKey: "restaurantId",
+        as: "scheduleData",
+      });
     }
   }
 

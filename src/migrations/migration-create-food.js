@@ -24,7 +24,11 @@ module.exports = {
         type: Sequelize.TEXT,
         allowNull: false,
       },
-      price: {
+      priceVi: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      priceEn: {
         type: Sequelize.STRING,
         allowNull: false,
       },
