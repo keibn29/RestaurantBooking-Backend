@@ -95,6 +95,51 @@ const handleSearchScheduleByDate = async (req, res) => {
   }
 };
 
+const handleSearchBooking = async (req, res) => {
+  try {
+    let response = await restaurantService.searchBooking(req.body);
+
+    return res.status(200).json(response);
+  } catch (e) {
+    console.log(e);
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi từ server!",
+    });
+  }
+};
+
+const handleConfirmBookingTable = async (req, res) => {
+  try {
+    let response = await restaurantService.confirmBookingTable(
+      req.params.bookingId,
+      req.query.statusId
+    );
+
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi từ server!",
+    });
+  }
+};
+
+const handleDeleteBookingById = async (req, res) => {
+  try {
+    let response = await restaurantService.deleteBookingById(
+      req.params.bookingId
+    );
+
+    return res.status(200).json(response);
+  } catch (e) {
+    return res.status(500).json({
+      errCode: -1,
+      errMessage: "Lỗi từ server!",
+    });
+  }
+};
+
 module.exports = {
   handleCreateNewRestaurant,
   handleSearchRestaurant,
@@ -102,4 +147,7 @@ module.exports = {
   handleDeleteRestaurantById,
   handleBulkCreateSchedule,
   handleSearchScheduleByDate,
+  handleSearchBooking,
+  handleConfirmBookingTable,
+  handleDeleteBookingById,
 };

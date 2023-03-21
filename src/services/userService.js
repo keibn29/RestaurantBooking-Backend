@@ -10,7 +10,7 @@ const login = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.email || !data.password || !data.pageLogin) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
@@ -27,7 +27,7 @@ const login = (data) => {
         raw: true,
       });
       if (!user) {
-        resolve({
+        return resolve({
           errCode: 3,
           errMessage: "Email không chính xác, vui lòng nhập email khác",
         });
@@ -35,17 +35,17 @@ const login = (data) => {
       let check = bcrypt.compareSync(data.password, user.password);
       if (check) {
         delete user.password;
-        resolve({
+        return resolve({
           errCode: 0,
           user,
         });
       }
-      resolve({
+      return resolve({
         errCode: 2,
         errMessage: "Mật khẩu không chính xác",
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
     }
   });
 };
@@ -65,13 +65,13 @@ const createNewUser = (data, file, fileError) => {
         if (file) {
           fs.unlinkSync(file.path);
         }
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
       }
       if (fileError) {
-        resolve({
+        return resolve({
           errCode: 2,
           errMessage: "Ảnh không hợp lệ",
         });
@@ -97,12 +97,12 @@ const createNewUser = (data, file, fileError) => {
         if (file) {
           fs.unlinkSync(file.path);
         }
-        resolve({
+        return resolve({
           errCode: 2,
           errMessage: "Email này đã được sử dụng, vui lòng nhập email khác",
         });
       }
-      resolve({
+      return resolve({
         errCode: 0,
         errMessage: "OK",
       });
@@ -110,7 +110,7 @@ const createNewUser = (data, file, fileError) => {
       if (file) {
         fs.unlinkSync(file.path);
       }
-      reject(e);
+      return reject(e);
     }
   });
 };
@@ -119,14 +119,11 @@ const searchUser = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.pageSize || !data.pageOrder) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
       }
-      // if (!data.keyword) {
-      //   data.keyword = "";
-      // }
 
       let { count, rows } = await db.User.findAndCountAll({
         // where: {
@@ -141,7 +138,10 @@ const searchUser = (data) => {
         attributes: {
           exclude: ["password"],
         },
-        order: [["roleId", "ASC"]],
+        order: [
+          ["roleId", "ASC"],
+          ["id", "ASC"],
+        ],
         include: [
           {
             model: db.Allcode,
@@ -150,13 +150,13 @@ const searchUser = (data) => {
           },
         ],
       });
-      resolve({
+      return resolve({
         errCode: 0,
         totalUser: count,
         listUser: rows,
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
     }
   });
 };
@@ -175,13 +175,13 @@ const editUserById = (userId, data, file, fileError) => {
         if (file) {
           fs.unlinkSync(file.path);
         }
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
       }
       if (fileError) {
-        resolve({
+        return resolve({
           errCode: 2,
           errMessage: "Ảnh không hợp lệ",
         });
@@ -196,7 +196,7 @@ const editUserById = (userId, data, file, fileError) => {
         if (file) {
           fs.unlinkSync(file.path);
         }
-        resolve({
+        return resolve({
           errCode: 3,
           errMessage: "Không tìm thấy người dùng",
         });
@@ -214,7 +214,7 @@ const editUserById = (userId, data, file, fileError) => {
         user.avatar = `/images/users/${file.filename}`;
       }
       await user.save();
-      resolve({
+      return resolve({
         errCode: 0,
         errMessage: "OK",
       });
@@ -222,7 +222,7 @@ const editUserById = (userId, data, file, fileError) => {
       if (file) {
         fs.unlinkSync(file.path);
       }
-      reject(e);
+      return reject(e);
     }
   });
 };
@@ -231,7 +231,7 @@ const deleteUserById = (userId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!userId) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
@@ -243,7 +243,7 @@ const deleteUserById = (userId) => {
         },
       });
       if (!user) {
-        resolve({
+        return resolve({
           errCode: 2,
           errMessage: "Không tìm thấy người dùng",
         });
@@ -255,12 +255,12 @@ const deleteUserById = (userId) => {
         }
       }
       await user.destroy();
-      resolve({
+      return resolve({
         errCode: 0,
         errMessage: "OK",
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
     }
   });
 };
@@ -269,7 +269,7 @@ const getAllUserByRole = (roleId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!roleId) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
@@ -280,12 +280,12 @@ const getAllUserByRole = (roleId) => {
           roleId: roleId,
         },
       });
-      resolve({
+      return resolve({
         errCode: 0,
         listUser,
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
     }
   });
 };

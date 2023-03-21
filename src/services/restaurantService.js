@@ -1,9 +1,10 @@
 import db from "../models/index";
 import fs from "fs";
 import appRoot from "app-root-path";
-import { LANGUAGES } from "../constant";
+import { GENERAL_STATUS, LANGUAGES, LIST_STATUS } from "../constant";
 import _ from "lodash";
 import { isExistArrayAndNotEmpty } from "../condition";
+import { Op } from "sequelize";
 
 const createNewRestaurant = (data, file, fileError) => {
   return new Promise(async (resolve, reject) => {
@@ -22,13 +23,13 @@ const createNewRestaurant = (data, file, fileError) => {
         if (file) {
           fs.unlinkSync(file.path);
         }
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
       }
       if (fileError) {
-        resolve({
+        return resolve({
           errCode: 2,
           errMessage: "Ảnh không hợp lệ",
         });
@@ -46,7 +47,7 @@ const createNewRestaurant = (data, file, fileError) => {
         descriptionEn: data.descriptionEn,
         avatar: file ? `/images/restaurants/${file.filename}` : null,
       });
-      resolve({
+      return resolve({
         errCode: 0,
         errMessage: "OK",
       });
@@ -54,7 +55,7 @@ const createNewRestaurant = (data, file, fileError) => {
       if (file) {
         fs.unlinkSync(file.path);
       }
-      reject(e);
+      return reject(e);
     }
   });
 };
@@ -63,7 +64,7 @@ const searchRestaurant = (data, language) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!data.pageSize || !data.pageOrder || !language) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
@@ -74,6 +75,7 @@ const searchRestaurant = (data, language) => {
         limit: data.pageSize,
         order: [
           language === LANGUAGES.VI ? ["nameVi", "ASC"] : ["nameEn", "ASC"],
+          ["id", "ASC"],
         ],
         include: [
           {
@@ -88,13 +90,13 @@ const searchRestaurant = (data, language) => {
           },
         ],
       });
-      resolve({
+      return resolve({
         errCode: 0,
         totalRestaurant: count,
         listRestaurant: rows,
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
     }
   });
 };
@@ -116,13 +118,13 @@ const editRestaurantById = (restaurantId, data, file, fileError) => {
         if (file) {
           fs.unlinkSync(file.path);
         }
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
       }
       if (fileError) {
-        resolve({
+        return resolve({
           errCode: 2,
           errMessage: "Ảnh không hợp lệ",
         });
@@ -138,7 +140,7 @@ const editRestaurantById = (restaurantId, data, file, fileError) => {
         if (file) {
           fs.unlinkSync(file.path);
         }
-        resolve({
+        return resolve({
           errCode: 3,
           errMessage: "Không tìm thấy nhà hàng",
         });
@@ -159,7 +161,7 @@ const editRestaurantById = (restaurantId, data, file, fileError) => {
         restaurant.avatar = `/images/restaurants/${file.filename}`;
       }
       await restaurant.save();
-      resolve({
+      return resolve({
         errCode: 0,
         errMessage: "OK",
       });
@@ -167,7 +169,7 @@ const editRestaurantById = (restaurantId, data, file, fileError) => {
       if (file) {
         fs.unlinkSync(file.path);
       }
-      reject(e);
+      return reject(e);
     }
   });
 };
@@ -176,7 +178,7 @@ const deleteRestaurantById = (restaurantId) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!restaurantId) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
@@ -188,7 +190,7 @@ const deleteRestaurantById = (restaurantId) => {
         },
       });
       if (!restaurant) {
-        resolve({
+        return resolve({
           errCode: 2,
           errMessage: "Không tìm thấy nhà hàng",
         });
@@ -201,17 +203,17 @@ const deleteRestaurantById = (restaurantId) => {
         }
       }
       await restaurant.destroy();
-      resolve({
+      return resolve({
         errCode: 0,
         errMessage: "OK",
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
     }
   });
 };
 
-let bulkCreateSchedule = (data) => {
+const bulkCreateSchedule = (data) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (
@@ -219,7 +221,7 @@ let bulkCreateSchedule = (data) => {
         !isExistArrayAndNotEmpty(data.listDateSelected) ||
         !isExistArrayAndNotEmpty(data.listTimeSelected)
       ) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
@@ -260,28 +262,28 @@ let bulkCreateSchedule = (data) => {
       );
 
       if (!isExistArrayAndNotEmpty(listScheduleBulkCreate)) {
-        resolve({
+        return resolve({
           errCode: 2,
           errMessage: "Tất cả lịch muốn thêm đã tồn tại",
         });
       }
 
       await db.Schedule.bulkCreate(listScheduleBulkCreate);
-      resolve({
+      return resolve({
         errCode: 0,
         errMessage: "OK",
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
     }
   });
 };
 
-let searchScheduleByDate = (restaurantId, date) => {
+const searchScheduleByDate = (restaurantId, date) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!restaurantId || !date) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
@@ -300,12 +302,105 @@ let searchScheduleByDate = (restaurantId, date) => {
           },
         ],
       });
-      resolve({
+      return resolve({
         errCode: 0,
         listSchedule,
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
+    }
+  });
+};
+
+const searchBooking = (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!data.pageSize || !data.pageOrder) {
+        return resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      let options = {
+        where: {},
+        offset: (data.pageOrder - 1) * data.pageSize,
+        limit: data.pageSize,
+        order: [
+          ["statusId", "ASC"],
+          [
+            { model: db.DishOrder, as: "dishOrderData" },
+            { model: db.Dish, as: "dishData" },
+            "nameVi",
+            "ASC",
+          ],
+        ],
+        include: [
+          {
+            model: db.Allcode,
+            as: "statusData",
+            attributes: ["valueVi", "valueEn"],
+          },
+          {
+            model: db.Allcode,
+            as: "timeTypeData",
+            attributes: ["valueVi", "valueEn"],
+          },
+          {
+            model: db.User,
+            as: "customerData",
+            attributes: [
+              "firstName",
+              "lastName",
+              "email",
+              "phone",
+              "address",
+              "avatar",
+            ],
+          },
+          {
+            model: db.DishOrder,
+            as: "dishOrderData",
+            attributes: ["id"],
+            include: [
+              {
+                model: db.Dish,
+                as: "dishData",
+                attributes: [
+                  "avatar",
+                  "nameVi",
+                  "nameEn",
+                  "priceVi",
+                  "priceEn",
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      if (data.restaurantId && data.date) {
+        options.where.restaurantId = data.restaurantId;
+        options.where.date = `${data.date}`;
+        if (data.generalStatus === GENERAL_STATUS.SLACKING) {
+          options.where[Op.or] = [
+            { statusId: LIST_STATUS.VERIFIED },
+            { statusId: LIST_STATUS.CONFIRMED },
+          ];
+        } else {
+          options.where.statusId = LIST_STATUS.DONE;
+        }
+      }
+
+      let { count, rows } = await db.Booking.findAndCountAll(options);
+
+      return resolve({
+        errCode: 0,
+        totalBooking: count,
+        listBooking: rows,
+      });
+    } catch (e) {
+      return reject(e);
     }
   });
 };
@@ -317,4 +412,5 @@ module.exports = {
   deleteRestaurantById,
   bulkCreateSchedule,
   searchScheduleByDate,
+  searchBooking,
 };

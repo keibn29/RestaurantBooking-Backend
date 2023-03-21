@@ -4,7 +4,7 @@ const getAllCode = (code) => {
   return new Promise(async (resolve, reject) => {
     try {
       if (!code) {
-        resolve({
+        return resolve({
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
@@ -15,12 +15,12 @@ const getAllCode = (code) => {
         },
         order: [["id", "ASC"]],
       });
-      resolve({
+      return resolve({
         errCode: 0,
         listCode: listCode,
       });
     } catch (e) {
-      reject(e);
+      return reject(e);
     }
   });
 };

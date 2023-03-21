@@ -9,6 +9,28 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Booking.belongsTo(models.Allcode, {
+        foreignKey: "statusId",
+        targetKey: "keyMap",
+        as: "statusData",
+      });
+      Booking.belongsTo(models.Allcode, {
+        foreignKey: "timeType",
+        targetKey: "keyMap",
+        as: "timeTypeData",
+      });
+      // Booking.belongsTo(models.Restaurant, {
+      //   foreignKey: "restaurantId",
+      //   as: "restaurantData",
+      // });
+      Booking.belongsTo(models.User, {
+        foreignKey: "customerId",
+        as: "customerData",
+      });
+      Booking.hasMany(models.DishOrder, {
+        foreignKey: "bookingId",
+        as: "dishOrderData",
+      });
     }
   }
 
@@ -17,8 +39,10 @@ module.exports = (sequelize, DataTypes) => {
       statusId: DataTypes.STRING,
       customerId: DataTypes.INTEGER,
       restaurantId: DataTypes.INTEGER,
+      table: DataTypes.INTEGER,
       date: DataTypes.STRING,
       timeType: DataTypes.STRING,
+      token: DataTypes.STRING,
     },
     {
       sequelize,

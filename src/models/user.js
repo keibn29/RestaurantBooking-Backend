@@ -14,9 +14,14 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "keyMap",
         as: "roleData",
       });
+      //hasOne
       User.hasMany(models.Restaurant, {
         foreignKey: "managerId",
         as: "restaurantData",
+      });
+      User.hasMany(models.Booking, {
+        foreignKey: "customerId",
+        as: "bookingData",
       });
     }
   }

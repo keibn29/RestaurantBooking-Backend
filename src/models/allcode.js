@@ -19,15 +19,25 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "keyMap",
         as: "restaurantData",
       });
-      Allcode.hasMany(models.Food, {
+      Allcode.hasMany(models.Dish, {
         foreignKey: "countryId",
         targetKey: "keyMap",
-        as: "foodData",
+        as: "dishData",
       });
       Allcode.hasMany(models.Schedule, {
         foreignKey: "timeType",
         targetKey: "keyMap",
         as: "scheduleData",
+      });
+      Allcode.hasMany(models.Booking, {
+        foreignKey: "statusId",
+        targetKey: "keyMap",
+        as: "statusBooking",
+      });
+      Allcode.hasMany(models.Booking, {
+        foreignKey: "timeType",
+        targetKey: "keyMap",
+        as: "timeTypeBooking",
       });
     }
   }

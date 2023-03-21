@@ -2,12 +2,13 @@ import express from "express";
 import {
   uploadUser,
   uploadRestaurant,
-  uploadFood,
+  uploadDish,
 } from "../middleware/multerMiddleware";
 import userController from "../controllers/userController";
 import allCodeController from "../controllers/allCodeController";
 import restaurantController from "../controllers/restaurantController";
-import foodController from "../controllers/foodController";
+import dishController from "../controllers/dishController";
+import customerController from "../controllers/customerController";
 
 const router = express.Router();
 
@@ -57,19 +58,35 @@ const initWebRoutes = (app) => {
   router.post("/api/schedules", restaurantController.handleBulkCreateSchedule);
   router.get("/api/schedules", restaurantController.handleSearchScheduleByDate);
 
-  //food
+  //dish
   router.post(
-    "/api/foods",
-    uploadFood.single("avatar"),
-    foodController.handleCreateNewFood
+    "/api/dishes",
+    uploadDish.single("avatar"),
+    dishController.handleCreateNewDish
   );
-  router.post("/api/foods/search", foodController.handleSearchFood);
+  router.post("/api/dishes/search", dishController.handleSearchDish);
   router.put(
-    "/api/foods/:foodId",
-    uploadFood.single("avatar"),
-    foodController.handleEditFoodById
+    "/api/dishes/:dishId",
+    uploadDish.single("avatar"),
+    dishController.handleEditDishById
   );
-  router.delete("/api/foods/:foodId", foodController.handleDeleteFoodById);
+  router.delete("/api/dishes/:dishId", dishController.handleDeleteDishById);
+
+  //booking
+  router.post("/api/bookings", customerController.handleBookingTable);
+  router.put(
+    "/api/bookings/verify",
+    customerController.handleVerifyBookingTable
+  );
+  router.post("/api/bookings/search", restaurantController.handleSearchBooking);
+  router.put(
+    "/api/bookings/confirm/:bookingId",
+    restaurantController.handleConfirmBookingTable
+  );
+  router.delete(
+    "/api/bookings/:bookingId",
+    restaurantController.handleDeleteBookingById
+  );
 
   return app.use("/", router);
 };

@@ -30,9 +30,9 @@ const storageRestaurant = multer.diskStorage({
   },
 });
 
-const storageFood = multer.diskStorage({
+const storageDish = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, appRoot + "/src/public/images/foods/");
+    cb(null, appRoot + "/src/public/images/dishes/");
   },
 
   // By default, multer removes file extensions so let's add them back
@@ -65,7 +65,7 @@ export const uploadRestaurant = multer({
   fileFilter: imageFilter,
 });
 
-export const uploadFood = multer({
-  storage: storageFood,
+export const uploadDish = multer({
+  storage: storageDish,
   fileFilter: imageFilter,
 });

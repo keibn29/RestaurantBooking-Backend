@@ -20,11 +20,19 @@ module.exports = {
         type: Sequelize.INTEGER,
         allowNull: false,
       },
+      table: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+      },
       date: {
         type: Sequelize.STRING,
         allowNull: false,
       },
       timeType: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      token: {
         type: Sequelize.STRING,
         allowNull: false,
       },
