@@ -328,6 +328,7 @@ const searchBooking = (data) => {
         limit: data.pageSize,
         order: [
           ["statusId", "ASC"],
+          ["id", "ASC"],
           [
             { model: db.DishOrder, as: "dishOrderData" },
             { model: db.Dish, as: "dishData" },
@@ -377,6 +378,7 @@ const searchBooking = (data) => {
             ],
           },
         ],
+        distinct: true,
       };
 
       if (data.restaurantId && data.date) {
@@ -405,6 +407,90 @@ const searchBooking = (data) => {
   });
 };
 
+const confirmBookingTable = (bookingId, statusId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!bookingId || !statusId) {
+        return resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      if (
+        statusId !== LIST_STATUS.VERIFIED &&
+        statusId !== LIST_STATUS.CONFIRMED
+      ) {
+        return resolve({
+          errCode: 2,
+          errMessage: "Thông tin không chính xác",
+        });
+      }
+
+      let existBook = await db.Booking.findOne({
+        where: {
+          id: bookingId,
+          statusId: statusId,
+        },
+      });
+      if (!existBook) {
+        return resolve({
+          errCode: 3,
+          errMessage: "Đơn đặt bàn không tồn tại",
+        });
+      }
+
+      if (existBook.statusId === LIST_STATUS.VERIFIED) {
+        existBook.statusId = LIST_STATUS.CONFIRMED;
+      } else {
+        existBook.statusId = LIST_STATUS.DONE;
+      }
+      await existBook.save();
+
+      return resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
+    } catch (e) {
+      return reject(e);
+    }
+  });
+};
+
+const deleteBookingById = (bookingId) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!bookingId) {
+        return resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      let existBook = await db.Booking.findOne({
+        where: {
+          id: bookingId,
+        },
+      });
+      if (!existBook) {
+        return resolve({
+          errCode: 2,
+          errMessage: "Đơn đặt bàn không tồn tại",
+        });
+      }
+
+      await existBook.destroy();
+
+      return resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
+    } catch (e) {
+      return reject(e);
+    }
+  });
+};
+
 module.exports = {
   createNewRestaurant,
   searchRestaurant,
@@ -413,4 +499,6 @@ module.exports = {
   bulkCreateSchedule,
   searchScheduleByDate,
   searchBooking,
+  confirmBookingTable,
+  deleteBookingById,
 };

@@ -170,28 +170,28 @@ const verifyBookingTable = (token) => {
           errMessage: "Thiếu thông tin bắt buộc",
         });
       } else {
-        let existBooked = await db.Booking.findOne({
+        let existBook = await db.Booking.findOne({
           where: {
             token: token,
           },
         });
 
-        if (!existBooked) {
+        if (!existBook) {
           return resolve({
             errCode: 2,
             errMessage: "Lịch đặt bàn không tồn tại",
           });
         }
 
-        if (existBooked.statusId !== LIST_STATUS.NEW) {
+        if (existBook.statusId !== LIST_STATUS.NEW) {
           return resolve({
             errCode: 3,
             errMessage: "Lịch đặt bàn đã được xác nhận trước đó",
           });
         }
 
-        existBooked.statusId = LIST_STATUS.VERIFIED;
-        await existBooked.save();
+        existBook.statusId = LIST_STATUS.VERIFIED;
+        await existBook.save();
 
         return resolve({
           errCode: 0,
