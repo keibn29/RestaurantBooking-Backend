@@ -21,7 +21,7 @@ module.exports = {
         allowNull: false,
       },
       detail: {
-        type: Sequelize.INTEGER,
+        type: Sequelize.TEXT,
       },
       createdAt: {
         allowNull: false,

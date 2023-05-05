@@ -1,16 +1,14 @@
 import db from "../models/index";
 import fs from "fs";
 import appRoot from "app-root-path";
-import { LANGUAGES, LIST_STATUS } from "../constant";
+import bcrypt from "bcryptjs";
+const salt = bcrypt.genSaltSync(10);
+import { LANGUAGES, LIST_STATUS, UPDATED_STATUS, USER_ROLE } from "../constant";
 import _ from "lodash";
 import { isExistArrayAndNotEmpty } from "../condition";
 require("dotenv").config();
 import emailService from "./emailService";
 import { v4 as uuidv4 } from "uuid";
-
-const buildUrlEmail = (token) => {
-  return `${process.env.URL_REACT}/verify-booking-table?token=${token}`;
-};
 
 const bookingTable = (data) => {
   return new Promise(async (resolve, reject) => {
@@ -108,7 +106,7 @@ const bookingTable = (data) => {
         await db.DishOrder.bulkCreate(listDishOrder);
       }
 
-      await emailService.sendSimpleEmail({
+      await emailService.sendEmailVerifyReservation({
         receiverEmail: customer.email,
         restaurantName:
           data.language === LANGUAGES.VI
@@ -124,7 +122,7 @@ const bookingTable = (data) => {
             : `${customer.firstName} ${customer.lastName}`,
         time: data.timeString,
         language: data.language,
-        redirectLink: buildUrlEmail(token),
+        redirectLink: buildUrlEmailVerifyReservation(token),
       });
 
       return resolve({
@@ -135,6 +133,10 @@ const bookingTable = (data) => {
       return reject(e);
     }
   });
+};
+
+const buildUrlEmailVerifyReservation = (token) => {
+  return `${process.env.URL_REACT}/verify-booking-table?token=${token}`;
 };
 
 const isStillHaveEmptyTable = async (data) => {
@@ -161,6 +163,48 @@ const isStillHaveEmptyTable = async (data) => {
   return true;
 };
 
+const checkExistBookByToken = (token) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!token) {
+        return resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      let existBook = await db.Booking.findOne({
+        where: {
+          token: token,
+        },
+      });
+
+      if (!existBook) {
+        return resolve({
+          errCode: 2,
+          errMessageVi: "Đơn đặt bàn không tồn tại",
+          errMessageEn: "Table reservation does not exist",
+        });
+      }
+
+      if (existBook.statusId !== LIST_STATUS.NEW) {
+        return resolve({
+          errCode: 3,
+          errMessageVi: "Đơn đặt bàn đã được xác nhận trước đó",
+          errMessageEn: "Pre-confirmed table reservation",
+        });
+      }
+
+      return resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
+    } catch (e) {
+      return reject(e);
+    }
+  });
+};
+
 const verifyBookingTable = (token) => {
   return new Promise(async (resolve, reject) => {
     try {
@@ -169,35 +213,139 @@ const verifyBookingTable = (token) => {
           errCode: 1,
           errMessage: "Thiếu thông tin bắt buộc",
         });
-      } else {
-        let existBook = await db.Booking.findOne({
-          where: {
-            token: token,
-          },
-        });
+      }
 
-        if (!existBook) {
-          return resolve({
-            errCode: 2,
-            errMessage: "Lịch đặt bàn không tồn tại",
-          });
-        }
+      let existBook = await db.Booking.findOne({
+        where: {
+          token: token,
+        },
+      });
 
-        if (existBook.statusId !== LIST_STATUS.NEW) {
-          return resolve({
-            errCode: 3,
-            errMessage: "Lịch đặt bàn đã được xác nhận trước đó",
-          });
-        }
+      existBook.statusId = LIST_STATUS.VERIFIED;
+      await existBook.save();
 
-        existBook.statusId = LIST_STATUS.VERIFIED;
-        await existBook.save();
+      return resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
+    } catch (e) {
+      return reject(e);
+    }
+  });
+};
 
+const forgotPassword = (data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!data.email || !data.language) {
         return resolve({
-          errCode: 0,
-          errMessage: "OK",
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
         });
       }
+
+      let customer = await db.User.findOne({
+        where: {
+          email: data.email,
+          roleId: USER_ROLE.CUSTOMER,
+        },
+      });
+      if (!customer) {
+        return resolve({
+          errCode: 2,
+          errMessage: "Không tìm thấy người dùng, vui lòng nhập email hợp lệ",
+        });
+      }
+
+      const token = uuidv4();
+      await createNewDetailForgot(customer.id, token);
+
+      await emailService.sendEmailForgotPassword({
+        receiverEmail: customer.email,
+        customerName:
+          data.language === LANGUAGES.VI
+            ? `${customer.lastName} ${customer.firstName}`
+            : `${customer.firstName} ${customer.lastName}`,
+        language: data.language,
+        redirectLink: buildUrlEmailUpdatePassword(customer.id, token),
+      });
+
+      return resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
+    } catch (e) {
+      return reject(e);
+    }
+  });
+};
+
+const buildUrlEmailUpdatePassword = (customerId, token) => {
+  return `${process.env.URL_REACT}/update-password/${customerId}?token=${token}`;
+};
+
+const createNewDetailForgot = async (customerId, token) => {
+  await db.DetailForgot.create({
+    isUpdated: UPDATED_STATUS.FALSE,
+    customerId: customerId,
+    token: token,
+  });
+};
+
+const updatePassword = (customerId, token, data) => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      if (!customerId || !token || !data.password) {
+        return resolve({
+          errCode: 1,
+          errMessage: "Thiếu thông tin bắt buộc",
+        });
+      }
+
+      let existDetailForgot = await db.DetailForgot.findOne({
+        where: {
+          customerId: customerId,
+          token: token,
+        },
+      });
+      if (!existDetailForgot) {
+        return resolve({
+          errCode: 2,
+          errMessage:
+            "Có lỗi xảy ra, vui lòng thực hiện yêu cầu cập nhật mật khẩu lại từ đầu",
+        });
+      }
+
+      if (existDetailForgot.isUpdated === UPDATED_STATUS.TRUE) {
+        return resolve({
+          errCode: 2,
+          errMessage: "Bạn chỉ có thể cập nhật mật khẩu 1 lần trên 1 yêu cầu",
+        });
+      }
+
+      let customer = await db.User.findOne({
+        where: {
+          id: customerId,
+        },
+      });
+      if (!customer) {
+        return resolve({
+          errCode: 3,
+          errMessage: "Không tìm thấy người dùng",
+        });
+      }
+
+      let passwordHash = await bcrypt.hashSync(data.password, salt);
+      customer.password = passwordHash;
+      await customer.save();
+
+      existDetailForgot.isUpdated = UPDATED_STATUS.TRUE;
+      await existDetailForgot.save();
+
+      return resolve({
+        errCode: 0,
+        errMessage: "OK",
+      });
     } catch (e) {
       return reject(e);
     }
@@ -205,6 +353,9 @@ const verifyBookingTable = (token) => {
 };
 
 module.exports = {
+  checkExistBookByToken,
   bookingTable,
   verifyBookingTable,
+  forgotPassword,
+  updatePassword,
 };

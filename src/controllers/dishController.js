@@ -2,9 +2,9 @@ import dishService from "../services/dishService";
 
 const handleCreateNewDish = async (req, res) => {
   try {
-    let response = await dishService.createNewDish(
+    const response = await dishService.createNewDish(
       req.body,
-      req.file,
+      req.files,
       req.fileValidationError
     );
 
@@ -19,10 +19,11 @@ const handleCreateNewDish = async (req, res) => {
 
 const handleSearchDish = async (req, res) => {
   try {
-    let response = await dishService.searchDish(req.body, req.query.language);
+    const response = await dishService.searchDish(req.body, req.query.language);
 
     return res.status(200).json(response);
   } catch (e) {
+    console.log(e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi từ server!",
@@ -32,10 +33,10 @@ const handleSearchDish = async (req, res) => {
 
 const handleEditDishById = async (req, res) => {
   try {
-    let response = await dishService.editDishById(
+    const response = await dishService.editDishById(
       req.params.dishId,
       req.body,
-      req.file,
+      req.files,
       req.fileValidationError
     );
 
@@ -50,7 +51,7 @@ const handleEditDishById = async (req, res) => {
 
 const handleDeleteDishById = async (req, res) => {
   try {
-    let response = await dishService.deleteDishById(req.params.dishId);
+    const response = await dishService.deleteDishById(req.params.dishId);
 
     return res.status(200).json(response);
   } catch (e) {

@@ -30,6 +30,14 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "restaurantId",
         as: "bookingData",
       });
+      Restaurant.hasMany(models.Image, {
+        foreignKey: "idMap",
+        as: "photoData",
+      });
+      Restaurant.hasMany(models.Review, {
+        foreignKey: "restaurantId",
+        as: "reviewData",
+      });
     }
   }
 

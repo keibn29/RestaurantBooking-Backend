@@ -9,6 +9,14 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Review.belongsTo(models.User, {
+        foreignKey: "customerId",
+        as: "customerData",
+      });
+      Review.belongsTo(models.Restaurant, {
+        foreignKey: "restaurantId",
+        as: "restaurantData",
+      });
     }
   }
 
@@ -17,7 +25,7 @@ module.exports = (sequelize, DataTypes) => {
       customerId: DataTypes.INTEGER,
       restaurantId: DataTypes.INTEGER,
       star: DataTypes.INTEGER,
-      detail: DataTypes.STRING,
+      detail: DataTypes.TEXT,
     },
     {
       sequelize,

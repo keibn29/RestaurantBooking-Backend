@@ -2,7 +2,7 @@ import userService from "../services/userService";
 
 const handleLogin = async (req, res) => {
   try {
-    let response = await userService.login(req.body);
+    const response = await userService.login(req.body);
 
     return res.status(200).json(response);
   } catch (e) {
@@ -15,7 +15,7 @@ const handleLogin = async (req, res) => {
 
 const handleCreateNewUser = async (req, res) => {
   try {
-    let response = await userService.createNewUser(
+    const response = await userService.createNewUser(
       req.body,
       req.file,
       req.fileValidationError
@@ -32,10 +32,11 @@ const handleCreateNewUser = async (req, res) => {
 
 const handleSearchUser = async (req, res) => {
   try {
-    let response = await userService.searchUser(req.body);
+    const response = await userService.searchUser(req.body);
 
     return res.status(200).json(response);
   } catch (e) {
+    console.log(e);
     return res.status(500).json({
       errCode: -1,
       errMessage: "Lỗi từ server!",
@@ -45,7 +46,7 @@ const handleSearchUser = async (req, res) => {
 
 const handleEditUserById = async (req, res) => {
   try {
-    let response = await userService.editUserById(
+    const response = await userService.editUserById(
       req.params.userId,
       req.body,
       req.file,
@@ -63,20 +64,7 @@ const handleEditUserById = async (req, res) => {
 
 const handleDeleteUserById = async (req, res) => {
   try {
-    let response = await userService.deleteUserById(req.params.userId);
-
-    return res.status(200).json(response);
-  } catch (e) {
-    return res.status(500).json({
-      errCode: -1,
-      errMessage: "Lỗi từ server!",
-    });
-  }
-};
-
-const handleGetAllUserByRole = async (req, res) => {
-  try {
-    let response = await userService.getAllUserByRole(req.params.role);
+    const response = await userService.deleteUserById(req.params.userId);
 
     return res.status(200).json(response);
   } catch (e) {
@@ -93,5 +81,4 @@ module.exports = {
   handleLogin,
   handleEditUserById,
   handleDeleteUserById,
-  handleGetAllUserByRole,
 };

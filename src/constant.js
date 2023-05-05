@@ -1,3 +1,5 @@
+export const NUMBER_MAX_VALUE = 9999;
+
 export const LANGUAGES = {
   VI: "vi",
   EN: "en",
@@ -19,10 +21,25 @@ export const LIST_STATUS = {
   VERIFIED: "S2",
   CONFIRMED: "S3",
   DONE: "S4",
-  CANCELLED: "S5",
+  OVERDUE: "S5",
 };
 
 export const GENERAL_STATUS = {
   DONE: "DONE",
   SLACKING: "SLACKING",
+};
+
+export const OBJECT = {
+  RESTAURANT: "O1",
+  DISH: "O2",
+};
+
+export const PAGE = {
+  HOMEPAGE: "homepage",
+  SEARCHPAGE: "searchpage",
+};
+
+export const UPDATED_STATUS = {
+  FALSE: 0,
+  TRUE: 1,
 };

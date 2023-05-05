@@ -16,6 +16,10 @@ module.exports = {
         type: Sequelize.STRING,
         allowNull: false,
       },
+      dishType: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
       descriptionVi: {
         type: Sequelize.TEXT,
         allowNull: false,
@@ -25,11 +29,11 @@ module.exports = {
         allowNull: false,
       },
       priceVi: {
-        type: Sequelize.STRING,
+        type: Sequelize.INTEGER,
         allowNull: false,
       },
       priceEn: {
-        type: Sequelize.STRING,
+        type: Sequelize.FLOAT,
         allowNull: false,
       },
       restaurantId: {

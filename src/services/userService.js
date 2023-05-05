@@ -5,6 +5,7 @@ const { Op } = require("sequelize");
 import fs from "fs";
 import appRoot from "app-root-path";
 import { PAGE_LOGIN, USER_ROLE } from "../constant";
+import { isExistArrayAndNotEmpty } from "../condition";
 
 const login = (data) => {
   return new Promise(async (resolve, reject) => {
@@ -16,16 +17,26 @@ const login = (data) => {
         });
       }
 
-      let user = await db.User.findOne({
+      let options = {
         where: {
           email: data.email,
-          roleId:
-            data.pageLogin === PAGE_LOGIN.SYSTEM
-              ? USER_ROLE.ADMIN || USER_ROLE.RESTAURANT_MANAGER
-              : USER_ROLE.CUSTOMER,
+        },
+        attributes: {
+          exclude: ["createdAt", "updatedAt"],
         },
         raw: true,
-      });
+        nest: true,
+      };
+
+      if (data.pageLogin === PAGE_LOGIN.SYSTEM) {
+        options.where.roleId = {
+          [Op.in]: [USER_ROLE.ADMIN, USER_ROLE.RESTAURANT_MANAGER],
+        };
+      } else {
+        options.where.roleId = USER_ROLE.CUSTOMER;
+      }
+
+      let user = await db.User.findOne(options);
       if (!user) {
         return resolve({
           errCode: 3,
@@ -33,16 +44,17 @@ const login = (data) => {
         });
       }
       let check = bcrypt.compareSync(data.password, user.password);
-      if (check) {
-        delete user.password;
+      if (!check) {
         return resolve({
-          errCode: 0,
-          user,
+          errCode: 2,
+          errMessage: "Mật khẩu không chính xác",
         });
       }
+
+      delete user.password;
       return resolve({
-        errCode: 2,
-        errMessage: "Mật khẩu không chính xác",
+        errCode: 0,
+        user,
       });
     } catch (e) {
       return reject(e);
@@ -125,14 +137,8 @@ const searchUser = (data) => {
         });
       }
 
-      let { count, rows } = await db.User.findAndCountAll({
-        // where: {
-        //   [Op.or]: [
-        //     { email: { [Op.like]: "%" + data.keyword + "%" } },
-        //     { firstName: { [Op.like]: "%" + data.keyword + "%" } },
-        //     { lastName: { [Op.like]: "%" + data.keyword + "%" } },
-        //   ],
-        // },
+      let options = {
+        where: {},
         offset: (data.pageOrder - 1) * data.pageSize,
         limit: data.pageSize,
         attributes: {
@@ -149,7 +155,25 @@ const searchUser = (data) => {
             attributes: ["valueVi", "valueEn"],
           },
         ],
-      });
+        raw: true,
+        nest: true,
+      };
+      if (data.roleId) {
+        options.where.roleId = data.roleId;
+      }
+
+      let { count, rows } = await db.User.findAndCountAll(options);
+
+      if (isExistArrayAndNotEmpty(rows)) {
+        let no = (data.pageOrder - 1) * data.pageSize + 1;
+        rows = rows.map((item) => {
+          item.no = no;
+          no++;
+
+          return item;
+        });
+      }
+
       return resolve({
         errCode: 0,
         totalUser: count,
@@ -201,6 +225,7 @@ const editUserById = (userId, data, file, fileError) => {
           errMessage: "Không tìm thấy người dùng",
         });
       }
+
       user.firstName = data.firstName;
       user.lastName = data.lastName;
       user.phone = data.phone;
@@ -213,9 +238,12 @@ const editUserById = (userId, data, file, fileError) => {
         }
         user.avatar = `/images/users/${file.filename}`;
       }
+
       await user.save();
+
       return resolve({
         errCode: 0,
+        userEdited: user,
         errMessage: "OK",
       });
     } catch (e) {
@@ -265,36 +293,10 @@ const deleteUserById = (userId) => {
   });
 };
 
-const getAllUserByRole = (roleId) => {
-  return new Promise(async (resolve, reject) => {
-    try {
-      if (!roleId) {
-        return resolve({
-          errCode: 1,
-          errMessage: "Thiếu thông tin bắt buộc",
-        });
-      }
-
-      let listUser = await db.User.findAll({
-        where: {
-          roleId: roleId,
-        },
-      });
-      return resolve({
-        errCode: 0,
-        listUser,
-      });
-    } catch (e) {
-      return reject(e);
-    }
-  });
-};
-
 module.exports = {
   createNewUser,
   searchUser,
   login,
   editUserById,
   deleteUserById,
-  getAllUserByRole,
 };

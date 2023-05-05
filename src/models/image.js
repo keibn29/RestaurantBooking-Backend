@@ -9,13 +9,22 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       // define association here
+      Image.belongsTo(models.Restaurant, {
+        foreignKey: "idMap",
+        as: "restaurantData",
+      });
+      Image.belongsTo(models.Dish, {
+        foreignKey: "idMap",
+        as: "dishData",
+      });
     }
   }
 
   Image.init(
     {
-      link: DataTypes.STRING,
+      objectId: DataTypes.STRING,
       idMap: DataTypes.INTEGER,
+      link: DataTypes.STRING,
     },
     {
       sequelize,

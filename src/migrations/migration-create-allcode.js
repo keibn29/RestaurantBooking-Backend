@@ -5,20 +5,25 @@ module.exports = {
       id: {
         allowNull: false,
         autoIncrement: true,
-        primaryKey: true,
         type: Sequelize.INTEGER,
       },
       keyMap: {
         type: Sequelize.STRING,
+        primaryKey: true,
+        allowNull: false,
       },
       type: {
         type: Sequelize.STRING,
+        primaryKey: true,
+        allowNull: false,
       },
       valueVi: {
         type: Sequelize.STRING,
+        allowNull: false,
       },
       valueEn: {
         type: Sequelize.STRING,
+        allowNull: false,
       },
       createdAt: {
         allowNull: false,

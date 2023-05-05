@@ -22,7 +22,12 @@ module.exports = (sequelize, DataTypes) => {
       Allcode.hasMany(models.Dish, {
         foreignKey: "countryId",
         targetKey: "keyMap",
-        as: "dishData",
+        as: "dishCountryData",
+      });
+      Allcode.hasMany(models.Dish, {
+        foreignKey: "dishType",
+        targetKey: "keyMap",
+        as: "dishTypeData",
       });
       Allcode.hasMany(models.Schedule, {
         foreignKey: "timeType",

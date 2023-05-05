@@ -14,6 +14,11 @@ module.exports = (sequelize, DataTypes) => {
         targetKey: "keyMap",
         as: "countryData",
       });
+      Dish.belongsTo(models.Allcode, {
+        foreignKey: "dishType",
+        targetKey: "keyMap",
+        as: "dishTypeData",
+      });
       Dish.belongsTo(models.Restaurant, {
         foreignKey: "restaurantId",
         as: "restaurantData",
@@ -22,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
         foreignKey: "dishId",
         as: "DishOrderData",
       });
+      Dish.hasMany(models.Image, {
+        foreignKey: "idMap",
+        as: "photoData",
+      });
     }
   }
 
@@ -29,10 +38,11 @@ module.exports = (sequelize, DataTypes) => {
     {
       nameVi: DataTypes.STRING,
       nameEn: DataTypes.STRING,
+      dishType: DataTypes.STRING,
       descriptionVi: DataTypes.TEXT,
       descriptionEn: DataTypes.TEXT,
-      priceVi: DataTypes.STRING,
-      priceEn: DataTypes.STRING,
+      priceVi: DataTypes.INTEGER,
+      priceEn: DataTypes.FLOAT,
       restaurantId: DataTypes.INTEGER,
       avatar: DataTypes.STRING,
       countryId: DataTypes.STRING,

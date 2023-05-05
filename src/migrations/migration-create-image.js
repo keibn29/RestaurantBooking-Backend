@@ -8,12 +8,16 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER,
       },
-      link: {
+      objectId: {
         type: Sequelize.STRING,
         allowNull: false,
       },
       idMap: {
         type: Sequelize.INTEGER,
+        allowNull: false,
+      },
+      link: {
+        type: Sequelize.STRING,
         allowNull: false,
       },
       createdAt: {

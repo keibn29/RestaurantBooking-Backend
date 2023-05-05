@@ -7,7 +7,6 @@ const storageUser = multer.diskStorage({
     cb(null, appRoot + "/src/public/images/users/");
   },
 
-  // By default, multer removes file extensions so let's add them back
   filename: function (req, file, cb) {
     cb(
       null,
@@ -21,11 +20,15 @@ const storageRestaurant = multer.diskStorage({
     cb(null, appRoot + "/src/public/images/restaurants/");
   },
 
-  // By default, multer removes file extensions so let's add them back
   filename: function (req, file, cb) {
     cb(
       null,
-      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
+      file.fieldname +
+        "-" +
+        Date.now() +
+        "-" +
+        Math.round(Math.random() * 1e9) +
+        path.extname(file.originalname)
     );
   },
 });
@@ -35,7 +38,24 @@ const storageDish = multer.diskStorage({
     cb(null, appRoot + "/src/public/images/dishes/");
   },
 
-  // By default, multer removes file extensions so let's add them back
+  filename: function (req, file, cb) {
+    cb(
+      null,
+      file.fieldname +
+        "-" +
+        Date.now() +
+        "-" +
+        Math.round(Math.random() * 1e9) +
+        path.extname(file.originalname)
+    );
+  },
+});
+
+const storageHandbook = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, appRoot + "/src/public/images/handbooks/");
+  },
+
   filename: function (req, file, cb) {
     cb(
       null,
@@ -45,12 +65,8 @@ const storageDish = multer.diskStorage({
 });
 
 const imageFilter = function (req, file, cb) {
-  // Accept images only
-  if (
-    !file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG|gif|GIF|avif|AVIF)$/)
-  ) {
+  if (!file.originalname.match(/\.(jpg|JPG|jpeg|JPEG|png|PNG)$/)) {
     req.fileValidationError = "Only image files are allowed!";
-    return cb(new Error("Only image files are allowed!"), false);
   }
   cb(null, true);
 };
@@ -67,5 +83,10 @@ export const uploadRestaurant = multer({
 
 export const uploadDish = multer({
   storage: storageDish,
+  fileFilter: imageFilter,
+});
+
+export const uploadHandbook = multer({
+  storage: storageHandbook,
   fileFilter: imageFilter,
 });
